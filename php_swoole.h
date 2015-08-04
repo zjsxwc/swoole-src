@@ -152,6 +152,13 @@ extern swoole_object_array swoole_objects;
 #define SW_FLAG_ASYNC                       (1u << 10)
 #define SW_FLAG_SYNC                        (1u << 11)
 //---------------------------------------------------------
+enum PHP_SW_FD
+{
+    PHP_SW_FD_EVENT = SW_FD_USER,
+    PHP_SW_FD_CLIENT,
+    PHP_SW_FD_CURL,
+};
+//---------------------------------------------------------
 #define php_swoole_socktype(type)           (type & (~SW_FLAG_SYNC) & (~SW_FLAG_ASYNC) & (~SW_FLAG_KEEP))
 #define php_swoole_array_length(array)      (Z_ARRVAL_P(array)->nNumOfElements)
 

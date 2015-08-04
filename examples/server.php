@@ -3,20 +3,20 @@ class G
 {
     static $serv;
     static $config = array(
-        //'worker_num' => 4,
+        'worker_num' => 4,
         //'open_eof_check' => true,
         //'package_eof' => "\r\n",
 //   'task_ipc_mode'   => 2,
-        'task_worker_num' => 2,
+//        'task_worker_num' => 2,
         'user' => 'www-data',
         'group' => 'www-data',
         'chroot' => '/opt/tmp',
         //'task_ipc_mode' => 1,
         //'dispatch_mode' => 1,
         //'log_file' => '/tmp/swoole.log',
-        'heartbeat_check_interval' => 300,
-        'heartbeat_idle_time' => 300,
-        'open_cpu_affinity' => 1,
+        'heartbeat_check_interval' => 5,
+        'heartbeat_idle_time' => 5,
+//        'open_cpu_affinity' => 1,
         //'cpu_affinity_ignore' =>array(0,1)//如果你的网卡2个队列（或者没有多队列那么默认是cpu0来处理中断）,并且绑定了core 0和core 1,那么可以通过这个设置避免swoole的线程或者进程绑定到这2个core，防止cpu0，1被耗光而造成的丢包
     );
 
@@ -46,8 +46,8 @@ if (isset($argv[1]) and $argv[1] == 'daemon') {
 	$config['daemonize'] = false;
 }
 
-//$mode = SWOOLE_BASE;
-$mode = SWOOLE_PROCESS;
+$mode = SWOOLE_BASE;
+//$mode = SWOOLE_PROCESS;
 
 $serv = new swoole_server("0.0.0.0", 9501, $mode);
 $serv->addlistener('0.0.0.0', 9502, SWOOLE_SOCK_UDP);
@@ -128,7 +128,7 @@ function processRename(swoole_server $serv, $worker_id) {
 
     if ($worker_id == 0)
     {
-        var_dump($serv->setting);
+        //var_dump($serv->setting);
     }
 
 	echo "WorkerStart: MasterPid={$serv->master_pid}|Manager_pid={$serv->manager_pid}";
@@ -161,7 +161,7 @@ function my_onShutdown($serv)
 function my_onTimer($serv, $interval)
 {
 	echo "Timer#$interval: ".microtime(true)."\n";
-    $serv->task("hello");
+    //$serv->task("hello");
 }
 
 function my_onClose($serv, $fd, $from_id)
@@ -183,13 +183,21 @@ function my_onConnect(swoole_server $serv, $fd, $from_id)
     echo "Client: Connect --- {$fd}\n";
 }
 
-function my_onWorkerStart($serv, $worker_id)
+function my_onWorkerStart(swoole_server $serv, $worker_id)
 {
 	processRename($serv, $worker_id);
     if (!$serv->taskworker)
     {
         swoole_process::signal(SIGUSR2, function($signo){
             echo "SIGNAL: $signo\n";
+        });
+    }
+    if ($serv->worker_id == 0)
+    {
+        echo "addtimer 200\n";
+        //$serv->addtimer(200);
+        $serv->tick(200, function($id) {
+            echo "Timer#$id: ".date('Y-m-d H:i:s')."\t".microtime(true)."\n";
         });
     }
 	//forkChildInWorker();
@@ -414,7 +422,7 @@ $serv->on('Connect', 'my_onConnect');
 $serv->on('Receive', 'my_onReceive');
 $serv->on('Close', 'my_onClose');
 $serv->on('Shutdown', 'my_onShutdown');
-$serv->on('Timer', 'my_onTimer');
+//$serv->on('Timer', 'my_onTimer');
 $serv->on('WorkerStart', 'my_onWorkerStart');
 $serv->on('WorkerStop', 'my_onWorkerStop');
 $serv->on('Task', 'my_onTask');
