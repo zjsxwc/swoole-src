@@ -1,3 +1,65 @@
+
+
+ PHP多版本下安装Swoole引起的问题
+
+    php swoole 
+
+1k 次阅读  ·  读完需要 4 分钟
+问题
+
+首先,你电脑上，系统是Ubuntu是安装了很多版本的PHP，其次，你的PHP引用改了之后有多个引起多个版本扩展共存的问题
+即如在我本地为/etc/php/7.1/cli目录下
+图片描述
+
+然后在/usr/lib/php目录下会是这样：
+图片描述
+
+这种情况下使用pecl进行安装将会出现
+
+Module compiled with module API=20151012 
+PHP    compiled with module API=20160303
+
+的情况，这样你使用php -v会一起报这个问题，如果不是这个问题就不用往下看了。
+解决
+
+首先，查看 /usr/bin/php-config这个软连接指向的是那个，如果发现本地只有一个即如php-config7.0可断定安装的扩展与实际运行的PHP版本不对应，需要安装dev
+你要重新根据自己PHP版本安装dev扩展,我正在使用的是PHP7.1.25
+在终端输入：
+
+sudo apt-get install php7.1-dev
+
+安装好后，进入目录/usr/bin下,查看
+
+clipboard.png
+
+然后备份旧版本的软连接，创建所需版本的软连接，终端：
+
+ sudo mv /usr/bin/phpize /usr/bin/phpize-old
+ sudo ln -s /usr/bin/phpize7.1 /usr/bin/phpize
+ 
+ sudo mv /usr/bin/php-config /usr/bin/php-config-old
+ sudo ln -s /usr/bin/php-config7.1 /usr/bin/php-config
+
+最后：
+如果之前安装过先将原来PHP.ini的extension=swoole.so先删了，
+再终端 sudo pecl uninstall swoole
+再运行 sudo pecl install swoole
+
+查看php.ini当前版本位置：php --ini
+安装后：sudo gedit /path/to/php/7.1/cli/php.ini 因为可能有些人不是和我安装一样默认目录，所以自行查看，将extension=swoole.so加入到文件中
+
+通过 php -m | grep swoole
+如果正常会显示：
+
+clipboard.png
+
+
+
+
+
+
+
+
 Swoole
 ======
 [![Build Status](https://api.travis-ci.org/swoole/swoole-src.svg)](https://travis-ci.org/swoole/swoole-src)
