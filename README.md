@@ -53,8 +53,9 @@ clipboard.png
 
 clipboard.png
 
+make install后会在/home/wangchao/php74/lib/php/extensions/no-debug-non-zts-20190529/下出现swoole.so文件
 
-
+最后在'/home/wangchao/php74/lib/php.ini' 里加入一句extension=swoole.so
 
 
 
